@@ -1,7 +1,7 @@
 {
   "name": "cli-run-cards",
   "version": "0.1.0",
-  "description": "Passthrough wrapper for coding CLIs (Grok Build, Claude Code) that writes opening/closing PNG run cards (plus Markdown versions) showing how each run really ended.",
+  "description": "Built for Grok Bot. Passthrough wrapper for coding CLIs (Grok Build, Claude Code) that writes opening/closing PNG run cards (plus Markdown versions) showing how each run really ended.",
   "type": "module",
   "private": true,
   "bin": {

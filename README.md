@@ -2,11 +2,17 @@
 
 **You started a coding run and walked away. run-cards gives you a card when it starts and an honest one when it ends, so you know whether it really finished and can share its progress with anyone.**
 
+Built for Grok Bot: Grok Bot agents run Grok Build and Claude Code through run-cards and post the opening and closing cards as images in the Grok Bot chat. It also works as a plain CLI wrapper anywhere.
+
 ![An opening card (RUN STARTED) and a closing card (PASSED, 26m 8s, 7.6M tokens) from a Grok Build run](docs/img/hero-open-to-pass.png)
 
 Put `run-cards` in front of a Grok Build or Claude Code command. The CLI runs exactly as it normally would. Before the run starts you get an **opening card** (tool, model, effort, prompt). When it ends you get a **closing card** (how it ended, how long it took, tokens, the start of the output). Each card is a 1200×630 PNG plus a short Markdown version for text-only chats.
 
-The Grok and Claude logos appear on cards only to show which tool ran. They belong to their owners. **Not affiliated with xAI or Anthropic.**
+The Grok and Claude logos appear on cards only to show which tool ran. They belong to their owners. **Not affiliated with xAI or Anthropic, and not an official Grok Bot product.**
+
+## Built for Grok Bot
+
+run-cards was made by [R Creative](https://rcreative.ai) for Grok Bot agents that write code. The agent starts a coding run with `run-cards grok ...` or `run-cards claude ...`, posts `open.png` in the chat when the run starts, and posts `close.png` when it ends. That way the person in the chat sees what each coding run did and how it really ended, without reading logs.
 
 ## Why
 
