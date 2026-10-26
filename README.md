@@ -2,7 +2,7 @@
 
 **You started a coding run and walked away. run-cards gives you a card when it starts and an honest one when it ends, so you know whether it really finished and can share its progress with anyone.**
 
-Built for Grok Bot: Grok Bot agents run Grok Build and Claude Code through run-cards and post the opening and closing cards as images in the Grok Bot chat. It also works as a plain CLI wrapper anywhere.
+Built for Grok Bot: Grok Bot agents hand coding runs to Grok Build or Claude Code through run-cards, which saves Grok Bot usage and lets you pick the model for each run, then post the opening and closing cards as images in the Grok Bot chat. It also works as a plain CLI wrapper anywhere.
 
 ![An opening card (RUN STARTED) and a closing card (PASSED, 26m 8s, 7.6M tokens) from a Grok Build run](docs/img/hero-open-to-pass.png)
 
@@ -13,6 +13,11 @@ The Grok and Claude logos appear on cards only to show which tool ran. They belo
 ## Built for Grok Bot
 
 run-cards was made by [R Creative](https://rcreative.ai) for Grok Bot agents that write code. The agent starts a coding run with `run-cards grok ...` or `run-cards claude ...`, posts `open.png` in the chat when the run starts, and posts `close.png` when it ends. That way the person in the chat sees what each coding run did and how it really ended, without reading logs.
+
+Why hand coding runs from Grok Bot to a CLI at all?
+
+- **Save Grok Bot usage.** Long coding work runs in Grok Build or Claude Code on your own CLI plan, not in the bot's own turns. The bot just starts the run and posts the two cards.
+- **Pick the model for each run.** Choose the tool, model and effort that fit the job, like Grok Build on `grok-4.7` for a big refactor or Claude Code on Opus for front-end work. The opening card shows which one you picked.
 
 ## Why
 
