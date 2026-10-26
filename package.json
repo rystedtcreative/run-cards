@@ -1,0 +1,29 @@
+{
+  "name": "cli-run-cards",
+  "version": "0.1.0",
+  "description": "Passthrough wrapper for coding CLIs (Grok Build, Claude Code) that writes opening/closing PNG run cards (plus Markdown versions) showing how each run really ended.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "run-cards": "bin/run-cards"
+  },
+  "files": [
+    "bin",
+    "src",
+    "assets"
+  ],
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "test": "node --test tests/",
+    "preview": "node scripts/preview-cards.js",
+    "font": "python3 scripts/build-font-atlas.py"
+  },
+  "license": "MIT",
+  "author": "R Creative / Joshua Rystedt",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rystedtcreative/run-cards.git"
+  }
+}

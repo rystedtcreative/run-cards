@@ -1,0 +1,141 @@
+#!/usr/bin/env node
+// Fake `grok` / `claude` for tests. Behaviour selected by FAKE_GROK_MODE.
+// FAKE_GROK_MARKER=<file> → touch <file> on start (lets tests prove the CLI was / wasn't spawned).
+import { writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+
+if (process.env.FAKE_GROK_MARKER) writeFileSync(process.env.FAKE_GROK_MARKER, 'ran\n');
+const mode = process.env.FAKE_GROK_MODE || 'pass';
+const args = process.argv.slice(2);
+switch (mode) {
+  case 'pass':
+    for (let i = 1; i <= 20; i++) process.stdout.write(`line ${i}\n`);
+    process.stdout.write('secret: sk-ant-api03-SHOULDNOTAPPEARONCARD0123456789\n');
+    process.stderr.write('warn: something on stderr\n');
+    process.exit(0);
+    break;
+  case 'args':
+    process.stdout.write(JSON.stringify(args) + '\n');
+    process.exit(0);
+    break;
+  case 'fail':
+    process.stdout.write('working...\n');
+    process.stderr.write('error: build failed with 3 errors\n');
+    process.exit(3);
+    break;
+  case 'json':
+    process.stdout.write(
+      JSON.stringify({
+        text: 'All done.\nFixed the bug in src/app.js.',
+        stopReason: 'end_turn',
+        usage: { input_tokens: 100, cache_read_input_tokens: 900, cache_creation_input_tokens: 0, output_tokens: 50, total_tokens: 1050 },
+      }) + '\n',
+    );
+    process.exit(0);
+    break;
+  case 'claude-json':
+    process.stdout.write(
+      JSON.stringify({
+        type: 'result',
+        subtype: 'success',
+        is_error: false,
+        result: 'Patched src/app.js.\nAll tests pass.',
+        usage: { input_tokens: 20, cache_read_input_tokens: 480, cache_creation_input_tokens: 0, output_tokens: 75 },
+        total_cost_usd: 0.01,
+      }) + '\n',
+    );
+    process.exit(0);
+    break;
+  // Today's incident: grok -p … --output-format json, headless, a tool needed approval →
+  // the turn was cancelled after 4 turns, nothing written, exit 0.
+  case 'grok-cancelled-json':
+    process.stdout.write(
+      JSON.stringify({
+        text: "I'll start by reading the project conventions.The briefing and plugin layout are in place. Next I'll match the bootstrap.",
+        stopReason: 'cancelled',
+        sessionId: 's1',
+        num_turns: 4,
+        usage: { input_tokens: 62431, cache_read_input_tokens: 133248, cache_creation_input_tokens: 0, output_tokens: 23335, total_tokens: 219014 },
+      }) + '\n',
+    );
+    process.exit(0);
+    break;
+  case 'grok-stream-blocked':
+    for (const o of [
+      { type: 'text', data: 'Reading the plugin layout first.' },
+      { type: 'tool_call', toolCallId: 'c1', title: 'Read', kind: 'read', status: 'in_progress', toolName: 'read_file', rawInput: { path: 'AGENTS.md' } },
+      { type: 'tool_call_update', toolCallId: 'c1', status: 'completed' },
+      { type: 'tool_call', toolCallId: 'c2', title: 'Run', kind: 'execute', status: 'in_progress', toolName: 'run_terminal_command', rawInput: { command: 'mkdir -p x' } },
+      { type: 'tool_call_update', toolCallId: 'c2', status: 'failed', content: [{ type: 'content', content: { type: 'text', text: 'User cancelled the execution for tool `run_terminal_command`' } }] },
+      { type: 'end', stopReason: 'cancelled', sessionId: 's1', usage: { input_tokens: 10, output_tokens: 5 }, num_turns: 4 },
+    ])
+      process.stdout.write(JSON.stringify(o) + '\n');
+    process.exit(0);
+    break;
+  case 'grok-stream-edited':
+    for (const o of [
+      { type: 'tool_call', toolCallId: 'c1', title: 'Edit', kind: 'edit', status: 'in_progress', toolName: 'search_replace', rawInput: { path: 'a.js' } },
+      { type: 'tool_call_update', toolCallId: 'c1', status: 'completed' },
+      { type: 'text', data: 'Edited a.js.' },
+      { type: 'end', stopReason: 'end_turn', usage: { input_tokens: 10, output_tokens: 5 } },
+    ])
+      process.stdout.write(JSON.stringify(o) + '\n');
+    process.exit(0);
+    break;
+  case 'claude-denied':
+    process.stdout.write(
+      JSON.stringify({
+        type: 'result',
+        subtype: 'success',
+        is_error: false,
+        result: 'I need permission to write src/app.js before I can apply the fix.',
+        permission_denials: [{ tool_name: 'Write', tool_use_id: 't1', tool_input: { file_path: 'src/app.js' } }],
+        usage: { input_tokens: 20, output_tokens: 10 },
+      }) + '\n',
+    );
+    process.exit(0);
+    break;
+  case 'claude-stream-denied':
+    for (const o of [
+      { type: 'system', subtype: 'init', permissionMode: 'default' },
+      { type: 'assistant', message: { content: [{ type: 'tool_use', id: 't1', name: 'Edit', input: { file_path: 'a.js' } }] } },
+      { type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 't1', is_error: true, content: "Claude requested permissions to write to /repo/a.js, but you haven't granted it yet." }] } },
+      { type: 'result', subtype: 'success', is_error: false, result: 'I could not edit a.js without permission.', stop_reason: 'end_turn', usage: { input_tokens: 5, output_tokens: 5 } },
+    ])
+      process.stdout.write(JSON.stringify(o) + '\n');
+    process.exit(0);
+    break;
+  case 'claude-max-turns':
+    process.stdout.write(JSON.stringify({ type: 'result', subtype: 'error_max_turns', is_error: true, num_turns: 3, usage: { input_tokens: 5, output_tokens: 5 } }) + '\n');
+    process.exit(0);
+    break;
+  // Makes a real commit in the cwd (a throwaway git repo set up by the test).
+  case 'commit':
+    writeFileSync('feature.txt', 'hello\n');
+    execFileSync('git', ['add', 'feature.txt']);
+    execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', 'commit', '-q', '-m', 'feat: add feature.txt']);
+    process.stdout.write('Committed feature.txt.\n');
+    process.exit(0);
+    break;
+  case 'hang':
+    process.stdout.write('starting, then hanging\n');
+    process.on('SIGTERM', () => {}); // ignore SIGTERM → wrapper must escalate to SIGKILL
+    setInterval(() => {}, 1000);
+    break;
+  case 'slow':
+    process.stdout.write('slow: started\n');
+    setTimeout(() => {
+      process.stderr.write('slow: finishing\n');
+      process.exit(0);
+    }, 400);
+    break;
+  case 'stdin':
+    process.stdin.pipe(process.stdout);
+    break;
+  case 'signal':
+    process.kill(process.pid, 'SIGTERM');
+    setInterval(() => {}, 1000);
+    break;
+  default:
+    process.exit(99);
+}

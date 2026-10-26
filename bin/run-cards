@@ -1,0 +1,13 @@
+#!/usr/bin/env node
+// cli-run-cards:wrapper — marker used by binary discovery to never exec this wrapper as the "real" CLI.
+import { main } from '../src/cli.js';
+
+main(process.argv.slice(2)).then(
+  (code) => {
+    process.exitCode = code;
+  },
+  (err) => {
+    process.stderr.write(`run-cards: internal error: ${err?.stack || err}\n`);
+    process.exitCode = 70;
+  },
+);
