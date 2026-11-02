@@ -61,6 +61,17 @@ Post them wherever your team follows the work. run-cards never uploads anything 
 
 ![A chat where a bot posts the opening card, then the closing card 26 minutes later](docs/img/demo-chat.gif)
 
+## Use it with Grok Bot
+
+This repo includes a ready-made Grok Bot skill, [`skills/grok-build-and-claude-code/SKILL.md`](skills/grok-build-and-claude-code/SKILL.md). It tells your bot when to hand a coding task to Grok Build or Claude Code, how to run it through run-cards, and when to post the opening and closing cards.
+
+To add it to your bot, pick one:
+
+- Copy the contents of the SKILL.md file into a chat with your bot and ask: "Save this as a skill called grok-build-and-claude-code."
+- Or point your bot at the raw file and ask it to save that as a skill: `https://raw.githubusercontent.com/rystedtcreative/run-cards/main/skills/grok-build-and-claude-code/SKILL.md`
+
+Your bot also needs `run-cards` plus `grok` and/or `claude` installed where it runs code. The skill's install section links to each.
+
 ## What the cards show
 
 | Card | What it means |
